@@ -6,17 +6,23 @@ public class NightCycle : MonoBehaviour
     public float cycleDuration = 10.0f; // Duración del ciclo de 180 grados en segundos
     public GameObject Day;
     public GameObject Farolas;
+    public Material nightSkybox;
 
     private bool activo = true;
     private float rotationSpeed;
     private int currentNight = 0;
     private float currentRotation = 0.0f;
-    
 
     private void Start()
     {
         // Calcula la velocidad de rotación necesaria para completar 180 grados en el tiempo dado
         rotationSpeed = 180.0f / cycleDuration;
+
+        // Establece el skybox inicial a noche
+        RenderSettings.skybox = nightSkybox;
+
+        // Reducir la intensidad de la luz ambiental para la noche
+        RenderSettings.ambientIntensity = 0.2f;
     }
 
     private void Update()
@@ -33,16 +39,23 @@ public class NightCycle : MonoBehaviour
         // Reinicia la rotación después de 180 grados
         if (currentRotation >= 180.0f)
         {
-
             this.gameObject.SetActive(false);
             currentRotation = 0.0f;
             currentNight++;
             nightLight.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+            // Cambiar el skybox a día
+            RenderSettings.skybox = null; // Limpiar el skybox para evitar problemas
+            RenderSettings.skybox = Day.GetComponent<DayNightCycle>().daySkybox;
+
+            // Aumentar la intensidad de la luz ambiental para el día
+            RenderSettings.ambientIntensity = 1.0f;
+
             Day.SetActive(true);
-            
-            Debug.Log("Noche " + currentNight );
+            Debug.Log("Noche " + currentNight);
         }
     }
+
     private void UpdateLightIntensity()
     {
         // Calcula el ángulo actual de la luz en el rango de 0 a 180 grados
@@ -57,3 +70,4 @@ public class NightCycle : MonoBehaviour
         nightLight.intensity = intensity;
     }
 }
+

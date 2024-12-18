@@ -11,6 +11,103 @@ public class FPSController : MonoBehaviour
     public float jumpPower = 7f;
     public float gravity = 10f;
 
+    public float lookSpeed = 2f;
+    public float lookXLimit = 45f;
+
+    public Vector3 thirdPersonOffset = new Vector3(0, 2, -4);
+
+    Vector3 moveDirection = Vector3.zero;
+    float rotationX = 0;
+
+    public bool canMove = true;
+    private bool isThirdPerson = false;
+
+    CharacterController characterController;
+
+    void Start()
+    {
+        characterController = GetComponent<CharacterController>();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void Update()
+    {
+        HandleMovement();
+        HandleJumping();
+        HandleRotation();
+        HandleViewSwitch();
+    }
+
+    void HandleMovement()
+    {
+        Vector3 forward = transform.TransformDirection(Vector3.forward);
+        Vector3 right = transform.TransformDirection(Vector3.right);
+
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0;
+        float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0;
+        float movementDirectionY = moveDirection.y;
+        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
+        if (!characterController.isGrounded)
+        {
+            moveDirection.y -= gravity * Time.deltaTime;
+        }
+
+        characterController.Move(moveDirection * Time.deltaTime);
+    }
+
+    void HandleJumping()
+    {
+        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
+        {
+            moveDirection.y = jumpPower;
+        }
+    }
+
+    void HandleRotation()
+    {
+        if (canMove)
+        {
+            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
+        }
+    }
+
+    void HandleViewSwitch()
+    {
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            isThirdPerson = !isThirdPerson;
+            if (isThirdPerson)
+            {
+                playerCamera.transform.localPosition += thirdPersonOffset;
+            }
+            else
+            {
+                playerCamera.transform.localPosition -= thirdPersonOffset;
+            }
+        }
+    }
+}
+
+
+/*using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+[RequireComponent(typeof(CharacterController))]
+public class FPSController : MonoBehaviour
+{
+    public Camera playerCamera;
+    public float walkSpeed = 6f;
+    public float runSpeed = 12f;
+    public float jumpPower = 7f;
+    public float gravity = 10f;
+
 
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
@@ -76,4 +173,4 @@ public class FPSController : MonoBehaviour
 
         #endregion
     }
-}
+}*/
